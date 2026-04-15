@@ -159,11 +159,14 @@
 
     <header class="app-header">
         <div class="header-left">
-            <button class="logo-tile" aria-label="Settings">
-                <span id="logoText">lar</span>
-            </button>
-            <span id="storeNameDisplay" class="store-name">larpify</span>
-        </div>
+    <button id="logoCircle" class="logo-tile" aria-label="Settings" onclick="document.getElementById('logoUpload').click();">
+        <span id="logoText">lar</span>
+    </button>
+    
+    <input type="file" id="logoUpload" style="display: none;" accept="image/*" onchange="updateLogo(this)">
+    
+    <span id="storeNameDisplay" class="store-name">larpify</span>
+</div>
         <div class="header-right">
             <button id="openSettings" class="bell-btn" aria-label="Notifications">
                 <svg viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -379,5 +382,30 @@
 </div>
 <script src="wallet.js"></script>
 
-
+<script>
+function updateLogo(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            var logoCircle = document.getElementById('logoCircle');
+            var logoText = document.getElementById('logoText');
+            
+            // 1. De foto instellen als achtergrond
+            logoCircle.style.backgroundImage = "url('" + e.target.result + "')";
+            logoCircle.style.backgroundSize = "cover";
+            logoCircle.style.backgroundPosition = "center";
+            
+            // 2. De tekst 'lar' onzichtbaar maken
+            logoText.style.opacity = "0"; 
+            
+            // 3. De achtergrondkleur transparant maken zodat de foto mooi uitkomt
+            logoCircle.style.backgroundColor = "transparent";
+            logoCircle.style.border = "none";
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 </body></html>

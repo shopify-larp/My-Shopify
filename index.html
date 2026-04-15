@@ -408,4 +408,26 @@ function updateLogo(input) {
     }
 }
 </script>
+
+<script>
+function generateReport() {
+    // 1. Maak een random getal voor Sales (tussen 1000 en 100000)
+    const randomSales = (Math.random() * (100000 - 1000) + 1000).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('salesValue').innerText = randomSales;
+
+    // 2. Maak random Orders (tussen 10 en 5000)
+    const randomOrders = Math.floor(Math.random() * 5000) + 10;
+    document.getElementById('ordersValue').innerText = randomOrders.toLocaleString('en-US');
+
+    // 3. Maak een random Conversion Rate (tussen 0.5% en 5.0%)
+    const randomConv = (Math.random() * (5.0 - 0.5) + 0.5).toFixed(1);
+    document.getElementById('conversionValue').innerText = randomConv + "%";
+
+    // 4. Maak de orders onderaan random (tussen 0 en 50)
+    document.getElementById('fulfillValue').innerText = Math.floor(Math.random() * 50);
+
+    // 5. De Grafiek aanroepen (Stap 4)
+    randomizeChart();
+}
+</script>
 </body></html>

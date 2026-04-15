@@ -186,10 +186,14 @@ button { font-family: inherit; cursor: pointer; }
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    margin-top: calc(50px + env(safe-area-inset-top, 0px));
+    /* VERANDERING 1: We halen de margin-top weg (die het naar boven trok) */
+    /* En gebruiken padding-top om ruimte te maken VOOR de zwarte balk: */
+    padding-top: calc(70px + env(safe-area-inset-top, 0px)); /* Pas de '70px' aan voor meer/minder witruimte */
+    
     background: #fff;
-    border-top-left-radius: 26px;
-    border-top-right-radius: 26px;
+    /* VERANDERING 2: Omdat het nu strak tegen elkaar aan staat, zijn afgeronde hoeken bovenaan niet meer nodig. Die halen we weg of zetten we op 0. */
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 
 /* ============================================================

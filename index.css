@@ -234,11 +234,11 @@ body {
     gap: 10px;
 }
 
-/* Teal logo tile */
+/* Teal logo tile - Gecombineerde versie */
 .logo-tile {
     width: 32px;
     height: 32px;
-    background: #4ecdc4;
+    background-color: #4ecdc4; /* Je originele kleur */
     border: none;
     border-radius: 8px;
     display: flex;
@@ -246,6 +246,12 @@ body {
     justify-content: center;
     flex-shrink: 0;
     padding: 0;
+    
+    /* Nieuwe extra regels voor de foto: */
+    overflow: hidden;      /* Zorgt dat de foto binnen het vierkantje blijft */
+    cursor: pointer;      /* Je ziet een handje als je eroverheen muist */
+    background-size: cover;       /* Zorgt dat de foto het hele vakje vult */
+    background-position: center;  /* Zorgt dat de foto mooi gecentreerd staat */
 }
 
 #logoText {

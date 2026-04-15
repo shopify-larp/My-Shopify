@@ -182,33 +182,33 @@ button { font-family: inherit; cursor: pointer; }
 /* ============================================================
    MAIN APP
    ============================================================ */
-/* Stap 1: Zorg dat de basis-achtergrond zwart is, anders zie je de ronding niet */
-body {
-    background-color: #000 !important;
-    margin: 0;
-    padding: 0;
-}
-
-/* Stap 2: Pas het witte vlak aan */
 #mainPage {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background-color: #fff;
+
+    /* DIT IS DE FIX: We duwen het witte vlak naar beneden vanaf de bovenkant */
+    /* We gebruiken 'margin-top' om hem los te maken van de bovenrand van het scherm */
+    margin-top: 100px; /* Pas dit getal aan (bijv. 110px of 120px) tot de hoeken precies onder de zwarte balk vandaan komen */
+
+    /* De mooie ronde hoeken */
+    border-top-left-radius: 26px;
+    border-top-right-radius: 26px;
+
+    /* Zorg dat de inhoud binnenin niet direct tegen de ronde rand aanplakt */
+    padding-top: 10px;
     
-    /* DIT IS DE KEY: Geef hem wat ruimte vanaf de bovenkant */
-    margin-top: 15px; 
-    
-    /* Ronde hoeken forceren */
-    border-top-left-radius: 30px !important;
-    border-top-right-radius: 30px !important;
-    
-    /* Voorkom dat inhoud de hoekjes 'overstroomt' */
-    overflow: hidden;
-    
-    /* Zorg dat dit vlak bovenop de achtergrond ligt */
+    /* Belangrijk om de hoeken zichtbaar te houden */
     position: relative;
-    z-index: 1;
+    overflow: hidden; 
+}
+
+/* Zorg dat de achtergrond van de hele pagina zwart is, 
+   zodat de ruimte boven de witte kaart zwart blijft */
+body {
+    background-color: #000;
+    margin: 0;
 }
 /* ============================================================
    BLACK HEADER

@@ -190,7 +190,7 @@ button { font-family: inherit; cursor: pointer; }
 
     /* DIT IS DE FIX: We duwen het witte vlak naar beneden vanaf de bovenkant */
     /* We gebruiken 'margin-top' om hem los te maken van de bovenrand van het scherm */
-    margin-top: 90px; /* Pas dit getal aan (bijv. 110px of 120px) tot de hoeken precies onder de zwarte balk vandaan komen */
+    margin-top: 50px; /* Pas dit getal aan (bijv. 110px of 120px) tot de hoeken precies onder de zwarte balk vandaan komen */
 
     /* De mooie ronde hoeken */
     border-top-left-radius: 26px;

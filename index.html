@@ -401,7 +401,7 @@
 
 <script>
 /* ─────────────────────────────────────────────
-   Logo upload helper (original)
+    Logo upload helper (original)
 ───────────────────────────────────────────── */
 function updateLogo(input) {
     if (input.files && input.files[0]) {
@@ -413,7 +413,7 @@ function updateLogo(input) {
             logoCircle.style.backgroundSize     = "cover";
             logoCircle.style.backgroundPosition = "center";
             logoText.style.opacity              = "0";
-            logoCircle.style.backgroundColor   = "transparent";
+            logoCircle.style.backgroundColor    = "transparent";
             logoCircle.style.border             = "none";
         };
         reader.readAsDataURL(input.files[0]);
@@ -421,111 +421,94 @@ function updateLogo(input) {
 }
 
 /* ─────────────────────────────────────────────
-   REPORT BUTTON — randomise stats & charts
+    REPORT BUTTON — randomise stats & charts
 ───────────────────────────────────────────── */
 
 /**
- * Generate a random smooth SVG cubic-bezier path
- * that stays within the chart's data area (y: 10–133, x: 36–394).
- * Returns a valid "M … C … C … C …" path string.
+ * Maakt een vloeiende Shopify-stijl curve
  */
 function randomChartPath() {
-    // We'll place ~9 anchor points spread evenly across x: 36 → 394
     const xStart = 36, xEnd = 394;
-    const yMin = 12, yMax = 128;       // within visible grid area
-    const steps = 9;
+    const yMin = 30, yMax = 120; // Iets meer marge voor een cleaner look
+    const steps = 7; // Iets minder punten geeft rustigere lijnen
     const stepX = (xEnd - xStart) / (steps - 1);
 
-    // Build array of {x, y} anchor points
     const pts = [];
     for (let i = 0; i < steps; i++) {
         pts.push({
-            x: Math.round(xStart + i * stepX),
-            y: Math.round(yMin + Math.random() * (yMax - yMin))
+            x: xStart + (i * stepX),
+            y: yMin + Math.random() * (yMax - yMin)
         });
     }
 
-    // Convert anchor points to a smooth cubic bezier path
-    // Using Catmull-Rom → Bezier conversion for natural curves
+    // Begin het pad
     let d = `M${pts[0].x},${pts[0].y}`;
+
+    // Maak de bochten (Cubic Bezier)
     for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[i > 0 ? i - 1 : 0];
-        const p1 = pts[i];
-        const p2 = pts[i + 1];
-        const p3 = pts[i + 2 < pts.length ? i + 2 : pts.length - 1];
-
-        const tension = 0.4;
-        const cp1x = Math.round(p1.x + (p2.x - p0.x) * tension);
-        const cp1y = Math.round(p1.y + (p2.y - p0.y) * tension);
-        const cp2x = Math.round(p2.x - (p3.x - p1.x) * tension);
-        const cp2y = Math.round(p2.y - (p3.y - p1.y) * tension);
-
-        d += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+        const p0 = pts[i];
+        const p1 = pts[i + 1];
+        
+        // Het geheim voor ronde lijnen: de controlepunten horizontaal in het midden zetten
+        const cp1x = p0.x + (p1.x - p0.x) / 2;
+        
+        d += ` C${cp1x},${p0.y} ${cp1x},${p1.y} ${p1.x},${p1.y}`;
     }
     return d;
 }
 
 /**
- * Animate a path element from its current `d` to a new `d`
- * using requestAnimationFrame for a smooth morph over `duration` ms.
- * Falls back to instant update if SMIL not available.
+ * Update de grafiek met een vloeiende overgang
  */
-function morphPath(pathEl, newD, duration) {
-    // CSS `transition: d` is not widely supported — we use rAF interpolation.
-    // Because SVG path interpolation requires identical segment counts,
-    // we simply use a CSS opacity fade + swap trick for reliability.
-    pathEl.style.transition = 'opacity 0.2s ease';
-    pathEl.style.opacity = '0';
-    setTimeout(function() {
-        pathEl.setAttribute('d', newD);
-        pathEl.style.opacity = '1';
-    }, 220);
+function morphPath(pathEl, newD) {
+    if (!pathEl) return;
+    // We gebruiken CSS transition voor de soepele beweging
+    pathEl.style.transition = 'd 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+    pathEl.setAttribute('d', newD);
 }
 
 /**
- * Update all four charts (chart0–chart3) with new random paths.
+ * Update alle charts (0 t/m 3)
  */
 function randomiseCharts() {
     for (let i = 0; i <= 3; i++) {
         const solid  = document.getElementById('chart' + i + '-solid');
         const dashed = document.getElementById('chart' + i + '-dashed');
-        if (solid)  morphPath(solid,  randomChartPath(), 600);
-        if (dashed) morphPath(dashed, randomChartPath(), 600);
+        if (solid)  morphPath(solid,  randomChartPath());
+        if (dashed) morphPath(dashed, randomChartPath());
     }
 }
 
 /**
- * Format a number as USD currency string: e.g. 12345.6 → "$12,345.60"
+ * Formatteer getallen als geld ($1,234.56)
  */
 function fmtUSD(n) {
-    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 
 /**
- * Flash animation on an element to signal a value update.
+ * Flash animatie bij update
  */
 function flashEl(el) {
     el.classList.remove('stat-refresh-flash');
-    // Force reflow so the animation restarts
     void el.offsetWidth;
     el.classList.add('stat-refresh-flash');
 }
 
 /**
- * Main function triggered by the Report button click.
- * Randomises all visible stats and chart paths.
+ * Hoofdfunctie voor de Report knop
  */
 function refreshReportStats() {
-    // ── Generate random values ──────────────────────────────
-    const totalSales   = 1000   + Math.random() * 99000;      // $1,000 – $100,000
-    const grossSales   = totalSales * (1 + Math.random() * 0.12); // ~0–12% above total
-    const orders       = Math.round(10 + Math.random() * 9990);   // 10 – 10,000
-    const conversion   = (0.5  + Math.random() * 4.5).toFixed(1); // 0.5% – 5.0%
-    const visitors     = Math.round(5   + Math.random() * 195);   // 5 – 200
-    const fulfill      = Math.round(1   + Math.random() * 49);    // 1 – 50
-    const payments     = Math.round(1   + Math.random() * 29);    // 1 – 30
+    // 1. Genereer random getallen
+    const totalSales   = 1000   + Math.random() * 99000;
+    const grossSales   = totalSales * (1 + Math.random() * 0.12);
+    const orders       = Math.round(10 + Math.random() * 9990);
+    const conversion   = (0.5  + Math.random() * 4.5).toFixed(1);
+    const visitors     = Math.round(5   + Math.random() * 195);
+    const fulfill      = Math.round(1   + Math.random() * 49);
+    const payments     = Math.round(1   + Math.random() * 29);
 
-    // ── Update stat panel (col0 = Total Sales, col1 = Orders, col2 = Conversion) ──
+    // 2. Update de tekst in het scherm
     const col0 = document.getElementById('col0val');
     const col1 = document.getElementById('col1val');
     const col2 = document.getElementById('col2val');
@@ -534,34 +517,32 @@ function refreshReportStats() {
     if (col1) { col1.textContent = orders.toLocaleString(); flashEl(col1); }
     if (col2) { col2.textContent = conversion + '%'; flashEl(col2); }
 
-    // ── Update action boxes ──────────────────────────────────
     const afEl = document.getElementById('actionFulfill');
     const apEl = document.getElementById('actionPayments');
     if (afEl) { afEl.textContent = fulfill; flashEl(afEl); }
     if (apEl) { apEl.textContent = payments; flashEl(apEl); }
 
-    // ── Update live visitors badge ───────────────────────────
     const visEl = document.getElementById('dispVisitors');
     if (visEl) { visEl.textContent = visitors; }
 
-    // ── Update settings inputs so they stay in sync ──────────
+    // 3. Update de settings zodat ze gelijk blijven
     const setVal = function(id, val) {
         var el = document.getElementById(id);
         if (el) el.value = val;
     };
-    setVal('cfgSales',    fmtUSD(totalSales).replace('$', ''));
-    setVal('cfgGross',    fmtUSD(grossSales).replace('$', ''));
+    setVal('cfgSales',    fmtUSD(totalSales).replace('$', '').replace(',', ''));
+    setVal('cfgGross',    fmtUSD(grossSales).replace('$', '').replace(',', ''));
     setVal('cfgOrders',   orders);
     setVal('cfgConv',     conversion);
     setVal('cfgVisitors', visitors);
     setVal('cfgFulfill',  fulfill);
     setVal('cfgPayments', payments);
 
-    // ── Randomise chart curves ───────────────────────────────
+    // 4. Update de grafiek-vormen
     randomiseCharts();
 }
 
-// ── Wire up the Report button ────────────────────────────────
+// Luisteren naar klik op de knop
 document.addEventListener('DOMContentLoaded', function() {
     var reportBtn = document.getElementById('reportBtn');
     if (reportBtn) {

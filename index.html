@@ -430,36 +430,20 @@ function updateLogo(input) {
  * Returns a valid "M … C … C … C …" path string.
  */
 function randomChartPath() {
-    const w = 358; // De breedte van de grafiek
-    const h = 140; // De hoogte van de grafiek
-    const steps = 6; // Hoeveel punten (stappen) op de lijn
-    let points = [];
+    // We'll place ~9 anchor points spread evenly across x: 36 → 394
+    const xStart = 36, xEnd = 394;
+    const yMin = 12, yMax = 128;       // within visible grid area
+    const steps = 9;
+    const stepX = (xEnd - xStart) / (steps - 1);
 
-    // 1. Maak de punten (stippen) op willekeurige hoogte
-    for (let i = 0; i <= steps; i++) {
-        points.push({
-            x: (i * (w / steps)),
-            y: 20 + Math.random() * (h - 40)
+    // Build array of {x, y} anchor points
+    const pts = [];
+    for (let i = 0; i < steps; i++) {
+        pts.push({
+            x: Math.round(xStart + i * stepX),
+            y: Math.round(yMin + Math.random() * (yMax - yMin))
         });
     }
-
-    // 2. Begin de lijn bij het eerste punt (M = Move to)
-    let d = `M${points[0].x},${points[0].y}`;
-
-    // 3. Teken de ronde bochten tussen de punten (C = Curve)
-    for (let i = 0; i < points.length - 1; i++) {
-        const p0 = points[i];
-        const p1 = points[i + 1];
-        
-        // Dit getal bepaalt hoe "zacht" de bocht is. 
-        // We zetten het controlepunt precies in het midden tussen twee punten.
-        const cp1x = p0.x + (p1.x - p0.x) / 2;
-        
-        // We zeggen tegen de computer: Maak een bocht naar het volgende punt
-        d += ` C${cp1x},${p0.y} ${cp1x},${p1.y} ${p1.x},${p1.y}`;
-    }
-    return d;
-}
 
     // Convert anchor points to a smooth cubic bezier path
     // Using Catmull-Rom → Bezier conversion for natural curves

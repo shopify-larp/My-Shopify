@@ -242,13 +242,13 @@
     <div id="panelA">
         <div class="stats-row" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
             
-            <div class="stat-col">
-                <div class="stat-label" id="col0label">Total sales</div>
-                <div class="stat-val" style="display: flex; align-items: center; white-space: nowrap;">
-                    <span style="margin-right: 1px;">$</span>
-                    <span id="col0val" contenteditable="true" inputmode="decimal" style="outline: none;">1,169.61</span>
-                </div>
-            </div>
+     <div class="stat-col">
+    <div class="stat-label" id="col0label">Total sales</div>
+    <div class="stat-val" style="display: flex; align-items: center; white-space: nowrap;">
+        <span style="margin-right: 1px;">$</span>
+        <span id="col0val" contenteditable="true" inputmode="text" style="outline: none;">1,169.61</span>
+    </div>
+</div>
 
             <div class="stat-col center">
                 <div class="stat-label" id="col1label">Orders</div>
@@ -544,29 +544,40 @@ function syncEditableWithSettings() {
     const ids = ['col0val', 'col1val', 'col2val', 'actionFulfill', 'actionPayments', 'dispVisitors'];
     
     ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
+    const el = document.getElementById(id);
+    if (!el) return;
 
-        el.addEventListener('blur', () => {
-            let val = el.innerText.trim();
-            
-            // We zijn nu minder streng met replace, zodat punten en komma's blijven staan
-            if (id === 'col0val') document.getElementById('cfgSales').value = val.replace(/[$,]/g, '');
-            if (id === 'col1val') document.getElementById('cfgOrders').value = val.replace(/[,]/g, '');
-            if (id === 'col2val') document.getElementById('cfgConv').value = val.replace('%', '');
-            if (id === 'actionFulfill') document.getElementById('cfgFulfill').value = val;
-            if (id === 'actionPayments') document.getElementById('cfgPayments').value = val;
-            if (id === 'dispVisitors') document.getElementById('cfgVisitors').value = val;
-        });
-
-        el.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                el.blur();
-            }
-        });
+    // Dit zorgt ervoor dat je alleen cijfers, punten en komma's kunt typen
+    el.addEventListener('beforeinput', (e) => {
+        if (e.data && !/^[0-9.,]+$/.test(e.data)) {
+            e.preventDefault();
+        }
     });
-}
+
+    el.addEventListener('blur', () => {
+        let val = el.innerText.trim();
+        // Sla de waarde op in de settings zonder de rommel
+        const targetId = {
+            'col0val': 'cfgSales',
+            'col1val': 'cfgOrders',
+            'col2val': 'cfgConv',
+            'actionFulfill': 'cfgFulfill',
+            'actionPayments': 'cfgPayments',
+            'dispVisitors': 'cfgVisitors'
+        }[id];
+
+        if (targetId) {
+            document.getElementById(targetId).value = val.replace(/[$,]/g, '.');
+        }
+    });
+
+    el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+        }
+    });
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     var reportBtn = document.getElementById('reportBtn');

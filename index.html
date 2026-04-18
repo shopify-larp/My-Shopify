@@ -1,384 +1,274 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Shopify</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            --sf-green: #008060;
-            --sf-black: #202223;
-            --sf-bg: #f6f6f7;
-            --sf-border: #e1e3e5;
-            --sf-blue: #005bd3;
+        /* Smooth SVG path transitions for the chart animation */
+        #chartAreaA path, #chartAreaB path, #chartPool path {
+            transition: d 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-refresh-flash { animation: statFlash 0.5s ease-out; }
+        @keyframes statFlash {
+            0%   { opacity: 0.3; transform: translateY(-4px); }
+            100% { opacity: 1;   transform: translateY(0); }
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--sf-bg);
-            margin: 0;
-            color: var(--sf-black);
-            padding-bottom: 80px;
-            user-select: none;
-        }
+        [contenteditable="true"] { outline: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        /* Top Header */
-        .header {
-            background: #fff;
-            padding: 45px 16px 10px;
-            border-bottom: 1px solid var(--sf-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .header-title { font-weight: 700; font-size: 17px; }
-        .header-icons { display: flex; gap: 20px; align-items: center; }
-
-        /* Notification Badge Logic */
-        .notif-btn { position: relative; cursor: pointer; }
-        .badge-dot {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: #d72c0d;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
-
-        /* Time Selector Styling */
-        .time-selector {
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        .time-label { font-size: 14px; color: #6d7175; }
-        .time-value { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
-
-        /* Dashboard Grid */
-        .stats-grid { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat-card {
-            background: #fff;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid var(--sf-border);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .stat-card.full { grid-column: span 2; }
-        .stat-label { font-size: 13px; color: #6d7175; margin-bottom: 4px; }
-        .stat-value { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .stat-sub { font-size: 12px; color: #6d7175; }
-
-        /* Canvas Mockup */
-        .chart-placeholder {
-            width: 100%;
-            height: 60px;
-            margin-top: 10px;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            border-radius: 4px;
-        }
-
-        /* Action Items */
-        .action-list { padding: 0 8px; }
-        .action-item {
-            background: #fff;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--sf-border);
-        }
-        .action-info div:first-child { font-weight: 600; font-size: 14px; }
-        .action-info div:last-child { font-size: 13px; color: #6d7175; }
-
-        /* Bottom Nav */
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #fff;
-            border-top: 1px solid var(--sf-border);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 25px;
-            z-index: 100;
-        }
-        .nav-item { text-align: center; color: #6d7175; font-size: 10px; }
-        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; }
-        .nav-item.active { color: var(--sf-green); }
-
-        /* Notification Drawer (Bottom Sheet) */
-        #notifDrawer {
+        /* NIEUW: Bottom Sheet voor Notificaties */
+        #notificationDrawer {
             position: fixed;
             bottom: -100%;
             left: 0;
             width: 100%;
-            height: 60%;
-            background: #fff;
-            z-index: 1001;
-            transition: bottom 0.3s ease;
-            border-radius: 15px 15px 0 0;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            background: white;
+            z-index: 2000;
+            transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px 12px 0 0;
             padding: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+            max-height: 70vh;
+            overflow-y: auto;
         }
-        #notifDrawer.open { bottom: 0; }
-        .drawer-handle {
-            width: 40px;
-            height: 5px;
-            background: #ccc;
-            border-radius: 10px;
-            margin: 0 auto 20px;
-        }
-        .drawer-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-        }
-        .drawer-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 18px;
-        }
-        .notif-count {
-            background: #d72c0d;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-        }
-
-        /* Compact Settings UI */
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .setting-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--sf-border);
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 16px;
-        }
-        .btn-primary {
-            background: var(--sf-black);
-            color: white;
-            width: 100%;
-            padding: 15px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Backdrop */
-        #backdrop {
+        #notificationDrawer.active { bottom: 0; }
+        #drawerBackdrop {
             position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.5);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1999;
+        }
+        .drawer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .drawer-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .notif-badge-inline {
+            background: #d72c0d; color: white; border-radius: 50%;
+            width: 18px; height: 18px; display: flex; align-items: center;
+            justify-content: center; font-size: 11px; font-weight: bold;
+        }
+
+        /* NIEUW: Tijd Dropdown Menu */
+        #timeDropdownMenu {
+            position: absolute;
+            top: 135px;
+            left: 16px;
+            background: white;
+            border: 1px solid #e1e3e5;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             display: none;
             z-index: 1000;
-        }
-
-        /* Dropdown Menu for Time */
-        .time-dropdown {
-            position: absolute;
-            top: 130px;
-            right: 16px;
-            background: white;
-            border: 1px solid var(--sf-border);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-            z-index: 102;
-            width: 200px;
+            min-width: 180px;
         }
         .time-option {
             padding: 12px 16px;
             font-size: 14px;
-            border-bottom: 1px solid #f0f0f0;
+            color: #202223;
+            border-bottom: 1px solid #f1f1f1;
         }
-        .time-option:last-child { border: none; }
+        .time-option:last-child { border-bottom: none; }
         .time-option:active { background: #f6f6f7; }
-
-        /* Toggle Switch */
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc; transition: .4s; border-radius: 24px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--sf-green); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
     </style>
 </head>
 <body>
+<div id="appBody">
 
-    <div class="header">
-        <div class="header-title">larpify.myshopify.com</div>
-        <div class="header-icons">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <div class="notif-btn" onclick="toggleDrawer()">
-                <i class="fa-regular fa-bell"></i>
-                <div class="badge-dot"></div>
+<div id="settingsPage" class="settings-page">
+    <div class="settings-header">
+        <button id="closeSettings" class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <h1>Store settings</h1>
+        <div style="width:36px;"></div>
+    </div>
+    <div class="settings-content">
+        <div class="settings-section">
+            <h2 class="settings-section-title">STORE</h2>
+            <div class="settings-field"><label>Store name</label><input id="cfgStoreName" type="text" placeholder="larpify"></div>
+            <div class="settings-field"><label>Logo text</label><input id="cfgLogoText" type="text" placeholder="lar" maxlength="4"></div>
+            <div class="settings-field"><label>Avatar initials</label><input id="cfgAvatar" type="text" placeholder="LM" maxlength="3"></div>
+        </div>
+        <div class="settings-section">
+            <h2 class="settings-section-title">STATS</h2>
+            <div class="settings-field"><label>Total sales ($)</label><input id="cfgSales" type="text" placeholder="1,169.61"></div>
+            <div class="settings-field"><label>Orders</label><input id="cfgOrders" type="text" placeholder="103"></div>
+            <div class="settings-field"><label>Conversion rate (%)</label><input id="cfgConv" type="text" placeholder="0,3"></div>
+            <div class="settings-field"><label>Active visitors</label><input id="cfgVisitors" type="text" placeholder="23"></div>
+        </div>
+        <button id="saveSettings" class="save-btn">Save</button>
+    </div>
+</div>
+
+<div id="drawerBackdrop" onclick="closeNotifDrawer()"></div>
+<div id="notificationDrawer">
+    <div style="width: 40px; height: 5px; background: #e1e3e5; border-radius: 10px; margin: 0 auto 15px;"></div>
+    <div class="drawer-header">
+        <div class="drawer-title">Notifications <span class="notif-badge-inline">1</span></div>
+    </div>
+    <div class="settings-section" style="padding:0;">
+        <div class="settings-field">
+            <label>Notification text</label>
+            <input id="notifAmount" type="text" placeholder="44,95">
+        </div>
+        <div class="settings-field" style="flex-direction: row; justify-content: space-between; align-items: center; display: flex;">
+            <label>Enable notifications</label>
+            <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #008060;">
+        </div>
+        <button id="pushNotif" class="push-btn" style="margin-top: 10px;">Send notification</button>
+    </div>
+</div>
+
+<div id="mainPage">
+    <header class="app-header">
+        <div class="header-left">
+            <button id="logoCircle" class="logo-tile" onclick="document.getElementById('logoUpload').click();">
+                <span id="logoText">lar</span>
+            </button>
+            <input type="file" id="logoUpload" style="display: none;" accept="image/*" onchange="updateLogo(this)">
+            <span id="storeNameDisplay" class="store-name">larpify</span>
+        </div>
+        <div class="header-right">
+            <button id="openNotifDrawer" class="bell-btn" aria-label="Notifications" onclick="openNotifDrawer()">
+                <svg viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="m5.252 12.424-2.446-.281c-1.855-.213-2.38-2.659-.778-3.616l.065-.038a2.89 2.89 0 0 0 1.407-2.48v-.509a4.5 4.5 0 0 1 9 0v.51c0 1.016.535 1.958 1.408 2.479l.065.038c1.602.957 1.076 3.403-.778 3.616l-2.543.292v.365a2.7 2.7 0 0 1-5.4 0zm3.9.076h-2.4v.3a1.2 1.2 0 1 0 2.4 0zm-3.152-1.5h4l3.024-.348a.452.452 0 0 0 .18-.837l-.065-.038a4.4 4.4 0 0 1-.674-.495l-.073-.067a4.4 4.4 0 0 1-1.392-3.205v-.51a3 3 0 1 0-6 0v.51a4.4 4.4 0 0 1-1.391 3.205l-.073.067a4.6 4.6 0 0 1-.674.495l-.065.038a.453.453 0 0 0 .18.838z"></path>
+                </svg>
+            </button>
+            <div class="avatar-circle" onclick="document.getElementById('settingsPage').classList.add('active')">
+                <span id="avatarInitials">EC</span>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="time-selector" onclick="toggleTimeMenu()">
-        <div class="time-label">Total sales</div>
-        <div class="time-value" id="selectedTime">Today <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i></div>
-    </div>
-
-    <div id="timeMenu" class="time-dropdown">
-        <div class="time-option" onclick="setTime('Last 12 hours')">Last 12 hours</div>
-        <div class="time-option" onclick="setTime('Today')">Today</div>
-        <div class="time-option" onclick="setTime('Last 7 days')">Last 7 days</div>
-        <div class="time-option" onclick="setTime('Last 30 days')">Last 30 days</div>
-        <div class="time-option" onclick="setTime('Last 90 days')">Last 90 days</div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">Total sales</div>
-            <div class="stat-value" id="dispSales">€0.00</div>
-            <div class="stat-sub">0% <i class="fa-solid fa-arrow-right"></i></div>
-            <div class="chart-placeholder"></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Total orders</div>
-            <div class="stat-value" id="dispOrders">0</div>
-            <div class="stat-sub">0% <i class="fa-solid fa-arrow-right"></i></div>
-            <div class="chart-placeholder"></div>
-        </div>
-    </div>
-
-    <div class="action-list">
-        <div class="action-item">
-            <div class="action-info">
-                <div id="actionFulfill">0</div>
-                <div>Orders to fulfill</div>
+    <div id="contentWrapper" class="content-wrapper">
+        <div class="filter-row" style="position: relative;">
+            <button class="filter-btn" id="filterPeriodBtn" onclick="toggleTimeMenu()">Last 12 hours <span class="chevron">▾</span></button>
+            
+            <div id="timeDropdownMenu">
+                <div class="time-option" onclick="selectTime('Last 12 hours')">Last 12 hours</div>
+                <div class="time-option" onclick="selectTime('Today')">Today</div>
+                <div class="time-option" onclick="selectTime('Last 7 days')">Last 7 days</div>
+                <div class="time-option" onclick="selectTime('Last 30 days')">Last 30 days</div>
+                <div class="time-option" onclick="selectTime('Last 90 days')">Last 90 days</div>
             </div>
-            <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
-        </div>
-    </div>
 
-    <div id="backdrop" onclick="toggleDrawer()"></div>
-    <div id="notifDrawer">
-        <div class="drawer-handle"></div>
-        <div class="drawer-header">
-            <div class="drawer-title">
-                <span>Notifications</span>
-                <span class="notif-count">1</span>
+            <button class="live-btn" id="liveViewBtn">
+                <span class="live-dot"></span><span id="dispVisitors" contenteditable="true" inputmode="numeric">23</span>
+            </button>
+            <button class="report-btn" id="reportBtn">Report</button>
+        </div>
+
+        <div id="metricsViewport">
+            <div id="panelA">
+                <div class="stats-row">
+                    <div class="stat-col">
+                        <div class="stat-label">Total sales</div>
+                        <div class="stat-val" id="col0val" contenteditable="true">$1,169.61</div>
+                    </div>
+                    <div class="stat-col center">
+                        <div class="stat-label">Orders</div>
+                        <div class="stat-val muted" id="col1val" contenteditable="true">2</div>
+                    </div>
+                    <div class="stat-col right">
+                        <div class="stat-label">Conversion</div>
+                        <div class="stat-val muted" id="col2val" contenteditable="true">0%</div>
+                    </div>
+                </div>
+                <div class="chart-area" id="chartAreaA">
+                    <svg viewBox="0 0 400 175" width="100%" height="175">
+                        <path id="chart0-solid" d="M36,65 C50,65 56,25 68,25 C80,25 96,96 110,96 C124,96 134,28 148,28 C162,28 176,63 186,62 C196,61 208,54 216,55 C224,56 244,76 250,75 C256,74 264,58 270,60 C276,62 286,80 298,78 C308,76 318,13 330,13 C342,13 354,120 364,118 C376,116 390,80 394,78" fill="none" stroke="#13ACF0" stroke-width="2.2" stroke-linecap="round"></path>
+                    </svg>
+                </div>
             </div>
-            <i class="fa-solid fa-xmark" onclick="toggleDrawer()" style="font-size: 20px; color: #6d7175;"></i>
         </div>
 
-        <div class="setting-row">
-            <span>Enable Push Notifications</span>
-            <label class="switch">
-                <input type="checkbox" id="pushToggle" checked>
-                <span class="slider"></span>
-            </label>
+        <div class="action-section">
+            <div class="action-grid">
+                <div class="action-box">
+                    <span id="actionFulfill" class="action-num" contenteditable="true">2</span>
+                    <p class="action-label">Orders to fulfill</p>
+                </div>
+                <div class="action-box">
+                    <span id="actionPayments" class="action-num" contenteditable="true">1</span>
+                    <p class="action-label">Payment to capture</p>
+                </div>
+            </div>
         </div>
 
-        <input type="text" id="notifText" class="setting-input" placeholder="Notification text (e.g. €240.00)">
-        
-        <button class="btn-primary" onclick="sendTestNotif()">Send Test Notification</button>
+        <div class="promo-card">
+            <div class="promo-card-header">
+                <span class="promo-card-title">Start selling and earn 1% back</span>
+            </div>
+            <p class="promo-card-desc">You're earning 1% back in credits on every sale.</p>
+            <button class="promo-learn-btn">Learn more</button>
+        </div>
+        <div style="height:110px;"></div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item active">
-            <i class="fa-solid fa-house"></i>
-            Home
+    <nav class="bottom-nav">
+        <div class="nav-center-pill">
+            <button class="nav-btn active"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M12 14h-2a1 1 0 0 1-1-1v-2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v2.5a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-4.257c0-.796.316-1.56.879-2.122l3.707-3.707c.78-.78 2.047-.78 2.828 0l3.707 3.707a3 3 0 0 1 .879 2.122v4.257a2 2 0 0 1-2 2"></path></svg></button>
+            <button class="nav-btn"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.976 1.5a2.75 2.75 0 0 0-2.72 2.347l-.662 4.46a9 9 0 0 0-.094 1.282v1.661a3.25 3.25 0 0 0 3.25 3.25h6.5a3.25 3.25 0 0 0 3.25-3.25v-1.66q0-.645-.095-1.283l-.66-4.46a2.75 2.75 0 0 0-2.72-2.347h-6.05Z"></path></svg></button>
+            <button class="nav-btn"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.75a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5h-12.5a.75.75 0 0 1-.75-.75"></path></svg></button>
         </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-list"></i>
-            Orders
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-tag"></i>
-            Products
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            Store
-        </div>
-    </div>
+    </nav>
+</div>
+</div>
 
-    <script>
-        // Toggle de Notification Drawer
-        function toggleDrawer() {
-            const drawer = document.getElementById('notifDrawer');
-            const backdrop = document.getElementById('backdrop');
-            if(drawer.classList.contains('open')) {
-                drawer.classList.remove('open');
-                backdrop.style.display = 'none';
-            } else {
-                drawer.classList.add('open');
-                backdrop.style.display = 'block';
-            }
-        }
+<script>
+/* Drawer Logica */
+function openNotifDrawer() {
+    document.getElementById('notificationDrawer').classList.add('active');
+    document.getElementById('drawerBackdrop').style.display = 'block';
+}
+function closeNotifDrawer() {
+    document.getElementById('notificationDrawer').classList.remove('active');
+    document.getElementById('drawerBackdrop').style.display = 'none';
+}
 
-        // Toggle Time Menu
-        function toggleTimeMenu() {
-            const menu = document.getElementById('timeMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
+/* Tijd Menu Logica */
+function toggleTimeMenu() {
+    const menu = document.getElementById('timeDropdownMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+function selectTime(val) {
+    document.getElementById('filterPeriodBtn').innerHTML = `${val} <span class="chevron">▾</span>`;
+    document.getElementById('timeDropdownMenu').style.display = 'none';
+}
 
-        function setTime(val) {
-            document.getElementById('selectedTime').innerHTML = `${val} <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>`;
-            document.getElementById('timeMenu').style.display = 'none';
-            // Optioneel: Refresh data hier
-        }
+/* Originele Functies Behouden */
+function updateLogo(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var logoCircle = document.getElementById('logoCircle');
+            logoCircle.style.backgroundImage = "url('" + e.target.result + "')";
+            logoCircle.style.backgroundSize = "cover";
+            document.getElementById('logoText').style.opacity = "0";
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
-        // Notificatie Functie
-        function sendTestNotif() {
-            const text = document.getElementById('notifText').value || "New Order";
-            if (!("Notification" in window)) {
-                alert("This browser does not support desktop notification");
-            } else if (Notification.permission === "granted") {
-                new Notification("Shopify", { body: text, icon: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Shopify_Logo.png" });
-            } else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        new Notification("Shopify", { body: text });
-                    }
-                });
-            }
-            toggleDrawer(); // Sluit na verzenden
-        }
+document.getElementById('reportBtn').onclick = function() {
+    const sales = (Math.random() * 5000).toFixed(2);
+    document.getElementById('col0val').innerText = '$' + sales;
+};
 
-        // Vraag om permissie bij laden
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
-        }
-    </script>
-</body>
-</html>
+document.getElementById('pushNotif').onclick = function() {
+    const amt = document.getElementById('notifAmount').value || "44,95";
+    alert("Notification sent: New order for $" + amt);
+    closeNotifDrawer();
+};
+
+document.getElementById('closeSettings').onclick = () => document.getElementById('settingsPage').classList.remove('active');
+document.getElementById('saveSettings').onclick = () => document.getElementById('settingsPage').classList.remove('active');
+</script>
+</body></html>
